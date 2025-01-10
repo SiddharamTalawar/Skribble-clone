@@ -1,0 +1,101 @@
+.hero-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  height: 100vh;
+  /* background-color: white; */
+}
+
+.canvas-container {
+  flex: 1;
+  margin-right: 20px;
+  background-color: #f5f5f5;
+  /* padding: 20px; */
+  border-radius: 10px;
+  /* box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); */
+}
+.canvas-container canvas {
+  border: none;
+}
+.player-container {
+  flex: 1;
+  margin-right: 40px;
+  margin-left: 40px;
+  height: 500px;
+  background-color: #f5f5f5;
+  /* padding: 20px; */
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  flex: 1;
+  margin-left: 20px;
+  margin-right: 40px;
+  height: 500px;
+  background-color: #f5f5f5;
+  /* padding: 20px; */
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+.chat-container input {
+  padding: 10px;
+  width: 200px;
+  border: none;
+  border-radius: 5px;
+  margin-left: 5px;
+}
+.chat-container button {
+  margin-left: 10px;
+  background-color: #4caf50;
+}
+.input-section {
+  flex: 1;
+  margin-left: 20px;
+  /* background-color: #f5f5f5; */
+  padding: 20px;
+  border-radius: 10px;
+  /* border: 10px solid rgba(12, 44, 150, 0.75); */
+  /* box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); */
+  display: flex;
+  justify-content: center; /* Center horizontally */
+  align-items: center; /* Center vertically */
+  height: 100vh; /* Full viewport height */
+  /* width: 600px;
+  height: 400px; */
+}
+.chat-list-item {
+  margin: 0;
+  margin-right: 5px;
+}
+.chat-list-section {
+  height: 450px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+.input-section input[type="text"] {
+  width: 600px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+.input-section button {
+  padding: 10px 20px;
+  width: 400px;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+}
+.input-section h1 {
+  text-align: center;
+  color: #fff;
+}
