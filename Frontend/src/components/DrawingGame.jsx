@@ -66,42 +66,75 @@ const DrawingGame = () => {
     socket.emit("join_room", { room: room, sender: userName });
     setJoined(true);
   };
-  // if (!joined) {
-  //   // setUserName(location.state.username);
-  //   console.log(
-  //     "Joining room in DrawingGame 2222 with username :",
-  //     userName,
-  //     "and room:",
-  //     room
-  //   );
-  //   joinRoom();
-  //   setJoined(true);
-  // }
+  function generateRandomString(length) {
+    const characters =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let result = "";
+    const charactersLength = characters.length;
+    for (let i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+  }
+
+  const handleCreateRoom = (createRoom) => {
+    let element = document.querySelector(".hide-fields");
+    element.classList.add("flex-column"); //show the input fields
+    let btn = document.querySelector(".input-room-buttons");
+    btn.classList.remove("flex-column");
+    btn.classList.add("hide-fields"); //hide the buttons
+    if (createRoom) {
+      const randomString = generateRandomString(6);
+      // console.log(randomString);
+      setRoom(randomString);
+      let roomInput = document.getElementById("room-input");
+      roomInput.readonly = true; //make the room input readonly
+      console.log("Creating room with username:", userName);
+    } else {
+      console.log("Joining room with username:", userName, "and room:", room);
+    }
+  };
+
   return (
     <div>
       {!joined ? (
         <div className="input-section">
           <h1>Skribble</h1>
-          <input
-            type="text"
-            placeholder="Enter your username"
-            value={userName}
-            onChange={handleUsernameChange}
-            className="username-input"
-          />
-          {/* <button onClick={handleCreateRoom} className="create-room-button">
-            Create Room
-          </button> */}
-          <input
-            type="text"
-            placeholder="Enter room name"
-            value={room}
-            onChange={handleRoomChange}
-            className="room-input"
-          />
-          <button onClick={joinRoom} className="join-room-button">
-            Join Room
-          </button>
+          <div className="input-fields hide-fields">
+            <input
+              type="text"
+              placeholder="Enter your username"
+              value={userName}
+              onChange={handleUsernameChange}
+              className="username-input "
+            />
+
+            <input
+              id="room-input"
+              type="text"
+              placeholder="Enter room name"
+              value={room}
+              onChange={handleRoomChange}
+              className="room-input"
+            />
+            <button onClick={joinRoom} className="join-room-button">
+              Join Room
+            </button>
+          </div>
+          <div className="input-room-buttons flex-column">
+            <button
+              onClick={handleCreateRoom.bind(null, true)}
+              className="create-room-button"
+            >
+              Create Room
+            </button>
+            <button
+              onClick={handleCreateRoom.bind(null, false)}
+              className="join-room-button"
+            >
+              Join Room
+            </button>
+          </div>
         </div>
       ) : (
         <div className="hero-container">
