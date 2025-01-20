@@ -22,22 +22,20 @@ const DrawingGame = () => {
   const [userName, setUserName] = useState("");
   const [joined, setJoined] = useState(false);
   const [players, setPlayers] = useState({});
+  const [roomId, setRoomId] = useState("");
+  const [createRoom, setCreateRoom] = useState(false);
   useEffect(() => {
-    socket.emit("players_list", { players: players, room: room });
-    console.log("players_list", players);
+    // socket.emit("players_list", { players: players, room: room });
+    // console.log("players_list", players);
   }, [players]);
-  function addPlayers(sid, name) {
-    console.log(sid, name);
-    setPlayers((preplayers) => {
-      if (!Object.hasOwn(preplayers, sid)) {
-        return { ...preplayers, [sid]: name };
-      }
-      return preplayers;
-    });
+  function addPlayers(users) {
+    // console.log("users in add players", users);
+    setPlayers(users);
   }
 
   const handleUsernameChange = (e) => {
     setUserName(e.target.value);
+    // console.log("userName:", userName);
   };
 
   const handleRoomChange = (e) => {
@@ -47,25 +45,78 @@ const DrawingGame = () => {
     socket.on("connect", () => {
       console.log("Connected to server");
     });
-    // setUserName(location.state.username);
-    // console.log(
-    //   "Joining room in DrawingGame with username :",
-    //   userName,
-    //   "and room:",
-    //   room
-    // );
-    // joinRoom();
+    // Listen for room created event
+    socket.on("room_created", (data) => {
+      console.log("Room created:", data);
+      console.log("Room ID:", data.room.id);
+      console.log("userName:", data.sender);
+      console.log("room name", room);
+      // setRoomId(data.id);
+      // Emit an event to create a user
+
+      socket.emit("create_user", {
+        name: data.sender,
+        socket_id: socket.id,
+        room_id: data.room.id,
+        room: data.room.name,
+      });
+    });
+    socket.on("get_room", (data) => {
+      // Emit an event to create a user
+      console.log(
+        "Room ID in get room and userName:",
+        data.room.id,
+        data.sender
+      );
+      console.log("room name get_room", room);
+      socket.emit("create_user", {
+        name: data.sender,
+        socket_id: socket.id,
+        room_id: data.room.id,
+        room: data.room.name,
+      });
+    });
+    // Listen for user created event
+    socket.on("user_created", (data) => {
+      console.log("User created:", data);
+
+      // Emit an event to get users in the room
+      socket.emit("get_users_in_room", {
+        room_id: data.user.room_id,
+        room: data.room,
+      });
+    });
+    // Listen for users in the room event
+    socket.on("users_in_room", (users) => {
+      console.log("Users in room:", users);
+      // addPlayers(users);
+    });
+    socket.on("error", (error) => {
+      console.log("Error:", error);
+    });
+
     return () => {
       console.log("cleanup");
       socket.off("connect");
+      socket.off("room_created");
+      socket.off("user_created");
+      socket.off("users_in_room");
+      socket.off("error");
+
       //   socket.off("message");
     };
   }, []);
 
   const joinRoom = () => {
     socket.emit("join_room", { room: room, sender: userName });
+    if (createRoom) {
+      socket.emit("create_room", { room: room, sender: userName });
+    } else {
+      socket.emit("get_room_data", { room: room, sender: userName });
+    }
     setJoined(true);
   };
+
   function generateRandomString(length) {
     const characters =
       "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -89,7 +140,13 @@ const DrawingGame = () => {
       setRoom(randomString);
       let roomInput = document.getElementById("room-input");
       roomInput.readonly = true; //make the room input readonly
-      console.log("Creating room with username:", userName);
+
+      console.log(
+        "Creating room with username,randomString:",
+        userName,
+        randomString
+      );
+      setCreateRoom(true);
     } else {
       console.log("Joining room with username:", userName, "and room:", room);
     }
