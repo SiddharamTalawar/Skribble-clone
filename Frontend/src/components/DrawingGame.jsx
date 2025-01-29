@@ -3,10 +3,11 @@ import io from "socket.io-client";
 // import { useParams, useLocation } from "react-router-dom";
 // import Game from "./Game";
 import Chat from "./Chat";
-// import Canvas from "./Canvas
-import NewCanvas from "./Newcanvas";
 import "../styles/drawinggame.css";
 import CanvasNew from "./CanvasNew";
+import PlayerCard from "./PlayerCard";
+import Popup from "./PopUp";
+
 const socket = io("http://127.0.0.1:8000", {
   path: "/ws/socket.io",
 });
@@ -24,15 +25,60 @@ const DrawingGame = () => {
   const [players, setPlayers] = useState({});
   const [roomId, setRoomId] = useState("");
   const [createRoom, setCreateRoom] = useState(false);
-  useEffect(() => {
-    // socket.emit("players_list", { players: players, room: room });
-    // console.log("players_list", players);
-  }, [players]);
-  function addPlayers(users) {
-    // console.log("users in add players", users);
-    setPlayers(users);
-  }
+  const [isGameRoundStarted, setIsGameRoundStarted] = useState(false);
+  const [currentDrawerIndex, setCurrentDrawerIndex] = useState(-1);
+  const [currentDrawer, setCurrentDrawer] = useState({});
+  const [word, setWord] = useState("");
+  const [seconds, setSeconds] = useState(60);
+  const [color, setColor] = useState("#000000");
+  const [lineWidth, setlineWidth] = useState(5);
+  const [fillcolor, setfillcolor] = useState(false);
+  const [showPopUp, setShowPopUp] = useState(false);
+  const [correctGussers, setCorrectGussers] = useState([]);
+  // const thumbSize = 10 + lineWidth * 2;
+  const colors = [
+    "#FF0000",
+    "#00FF00",
+    "#0000FF",
+    "#FFFF00",
+    "#FF00FF",
+    "#00FFFF",
+    "#000000",
+    "#FFFFFF",
+  ];
 
+  // timer function for game
+  // useEffect(() => {
+  //   // console.log("seconds:", seconds);
+  //   if (seconds > 0 && isGameRoundStarted) {
+  //     const timerId = setInterval(() => {
+  //       setSeconds((prevSeconds) => prevSeconds - 1);
+  //     }, 1000);
+
+  //     return () => clearInterval(timerId);
+  //   } else if (seconds === 0 && isGameRoundStarted) {
+  //     // handleTimerEnd();
+  //   }
+  // }, [seconds, isGameRoundStarted]);
+
+  const handleColorChange = (selectedColor) => {
+    setColor(selectedColor);
+  };
+  const togglePopup = () => {
+    setShowPopUp(!showPopUp);
+  };
+  // const handleTimerEnd = () => {
+  //   if (currentDrawer.socket_id == socket.id) {
+  //     // startGame(); //call start game function to pick a new drawer
+  //     console.log("picking a drawer using timer...");
+  //     socket.emit("pick_drawer", {
+  //       room: room,
+  //       users: players,
+  //       last_drawer_id: currentDrawerIndex,
+  //     });
+  //     setSeconds(10);
+  //   }
+  // };
   const handleUsernameChange = (e) => {
     setUserName(e.target.value);
     // console.log("userName:", userName);
@@ -45,12 +91,16 @@ const DrawingGame = () => {
     socket.on("connect", () => {
       console.log("Connected to server");
     });
+    socket.on("disconnect", () => {
+      console.log("Disconnected from server");
+      socket.emit("exit_room", { room: room, sender: userName });
+    });
     // Listen for room created event
     socket.on("room_created", (data) => {
       console.log("Room created:", data);
-      console.log("Room ID:", data.room.id);
-      console.log("userName:", data.sender);
-      console.log("room name", room);
+      // console.log("Room ID:", data.room.id);
+      // console.log("userName:", data.sender);
+      // console.log("room name", room);
       // setRoomId(data.id);
       // Emit an event to create a user
 
@@ -89,10 +139,56 @@ const DrawingGame = () => {
     // Listen for users in the room event
     socket.on("users_in_room", (users) => {
       console.log("Users in room:", users);
-      // addPlayers(users);
+      // keeping only unique users
+      // TODO:reverse users list emited form be so that only recent unique users are stored
+      const objects = users.users;
+      const seenIds = new Set();
+      const uniqueObjects = objects.filter((obj) => {
+        if (seenIds.has(obj.socket_id)) {
+          return false;
+        } else {
+          seenIds.add(obj.id);
+          return true;
+        }
+      });
+      setPlayers(uniqueObjects);
     });
     socket.on("error", (error) => {
       console.log("Error:", error);
+    });
+
+    socket.on("new_drawer", (data) => {
+      console.log("new_drawer data", data);
+      setIsGameRoundStarted(true);
+      setCurrentDrawer(data.new_drawer);
+      setWord(data.word);
+      // setSeconds(60);
+      // setCurrentDrawerIndex(data.new_drawer_index);
+    });
+    socket.on("show_pop_up", (data) => {
+      console.log("show_pop_up data", data);
+      setShowPopUp(true);
+    });
+    socket.on("add_correct_guesser", (data) => {
+      console.log("add_correct_guesser data", data);
+      setCorrectGussers(data.socket_id);
+      // // console.log("players", players);
+      // if (players.length > 0) {
+      //   let updatedPlayers = players.map((player) => {
+      //     // if (player.user.socket_id == data.socket_id) {
+      //     //   return { ...player, isGuesser: true };
+      //     // } else {
+      //     //   return player;
+      //     // }
+      //     // console.log("player 2", player);
+      //   });
+      //   // console.log("updatedPlayers", updatedPlayers);
+      //   // setPlayers(updatedPlayers);
+      // }
+    });
+    socket.on("timer_update", (data) => {
+      // console.log("timer_update data", data);
+      setSeconds(data.time);
     });
 
     return () => {
@@ -102,6 +198,10 @@ const DrawingGame = () => {
       socket.off("user_created");
       socket.off("users_in_room");
       socket.off("error");
+      socket.off("new_drawer");
+      socket.off("show_pop_up");
+      socket.off("add_correct_guesser");
+      socket.off("timer_update");
 
       //   socket.off("message");
     };
@@ -152,6 +252,18 @@ const DrawingGame = () => {
     }
   };
 
+  const startGame = () => {
+    // console.log("picking a drawer...");
+    // socket.emit("pick_drawer", {
+    //   room: room,
+    //   users: players,
+    //   last_drawer_id: currentDrawerIndex,
+    // });
+    // setSeconds(20);
+    socket.emit("start_game", { room: room });
+    // setIsGameRoundStarted(true);
+  };
+
   return (
     <div>
       {!joined ? (
@@ -194,28 +306,92 @@ const DrawingGame = () => {
           </div>
         </div>
       ) : (
-        <div className="hero-container">
-          <div className="player-container">
-            <p>player 1</p>
-            <p>player 1</p>
+        <div className="container">
+          <Popup
+            show={showPopUp}
+            close={togglePopup}
+            players={players}
+            correctGussers={correctGussers}
+            word={word}
+            currentDrawer={currentDrawer}
+            socket={socket}
+          />
+          <div className="navbar-container">
+            <div className="navbar">
+              <div className="timer">{seconds}</div>
+              <div className="word-container">
+                {word && currentDrawer.socket_id == socket.id
+                  ? word
+                  : "_ ".repeat(word.length)}
+              </div>
+              <button className="start-button" onClick={startGame}>
+                start
+              </button>
+            </div>
           </div>
-          <div className="canvas-container">
-            <CanvasNew socket={socket} room={room} userName={userName} />
+
+          <div className="hero-container">
+            <div className="player-container">
+              {players.length > 0 &&
+                players.map((player) => (
+                  <PlayerCard key={player.id} user={player} />
+                ))}
+            </div>
+            <div className="canvas-container">
+              <CanvasNew
+                socket={socket}
+                room={room}
+                userName={userName}
+                currentDrawer={currentDrawer}
+                color={color}
+                lineWidth={lineWidth}
+                fillcolor={fillcolor}
+              />
+            </div>
+            <div className="chat-container">
+              <Chat
+                socket={socket}
+                room={room}
+                userName={userName}
+                word={word}
+              />
+            </div>
           </div>
-          <div className="chat-container">
-            <Chat
-              socket={socket}
-              room={room}
-              userName={userName}
-              addPlayers={addPlayers}
-            />
+          <div className="color-container">
+            {/* TODO: add fill color */}
+            {/* <div className="fillcolor-button">
+              <button onClick={() => setfillcolor(!fillcolor)}>fill</button>
+            </div> */}
+            <div className="color-palette">
+              {colors.map((col) => (
+                <div
+                  className="color"
+                  key={col}
+                  onClick={() => handleColorChange(col)}
+                  style={{ backgroundColor: col }}
+                />
+              ))}
+            </div>
+            <div className="line-width-controller">
+              <input
+                type="range"
+                min={1}
+                max={20}
+                // list="markers"
+                value={lineWidth}
+                onChange={(e) => setlineWidth(e.target.value)}
+              />
+              {/* <datalist id="markers">
+                <option value="0"></option>
+                <option value="5"></option>
+                <option value="10"></option>
+                <option value="15"></option>
+                <option value="20"></option>
+              </datalist> */}
+            </div>
           </div>
         </div>
       )}
-
-      {/* <NewCanvas socket={socket} room={room} userName={userName} /> */}
-      {/* <CanvasNew socket={socket} room={room} userName={userName} />
-      <Chat socket={socket} room={room} userName={userName} /> */}
     </div>
   );
 };
