@@ -2,10 +2,12 @@
 
 A multiplayer online drawing and guessing game, inspired by Skribbl.io, built using FastAPI, Socket.IO, and React.
 
-![game image 1](Frontend/public/Screenshot (48).png)
-![game image 2](Frontend/public/Screenshot (50).png)
+![game image 1](Frontend/public/Screenshot-1.png)
+![game image 2](Frontend/public/Screenshot-2.png)
 
-Table of Contents 1.[Overview](#Overview)
+Table of Contents
+
+1.[Overview](#Overview)
 
 2.[Features](#Features)
 
@@ -43,10 +45,11 @@ To run this project locally, follow these steps:
 
 Clone the repository:
 
-````bash
+```bash
 git clone https://github.com/SiddharamTalawar/Skribble-clone.git
 cd skribbio-clone
 ```
+
 Set up the backend:
 
 ```bash
@@ -56,6 +59,7 @@ source venv/bin/activate # On Windows, use `venv\Scripts\activate`
 pip install -r requirements.txt
 uvicorn main:app --reload
 ```
+
 Set up the frontend:
 
 ```bash
@@ -63,6 +67,7 @@ cd ../frontend
 npm install
 npm start
 ```
+
 ## Usage
 
 To start the game:
@@ -74,12 +79,14 @@ cd backend
 source venv/bin/activate # On Windows, use `venv\Scripts\activate`
 uvicorn main:app --reload
 ```
+
 Start the frontend server:
 
 ```bash
 cd ../frontend
 npm start
 ```
+
 Open your browser and go to http://localhost:5173 to access the game.
 
 ## Contributing
@@ -107,4 +114,7 @@ This project is licensed under the MIT License.
 For any questions or feedback, please reach out to:
 
 Siddhu Talawar - siddhu.dev822@gmail.com
-````
+
+```
+
+```
