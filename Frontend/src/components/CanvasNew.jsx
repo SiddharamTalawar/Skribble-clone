@@ -1,6 +1,13 @@
 import { useRef, useEffect, useState } from "react";
 
-const CanvasNew = ({ socket, room }) => {
+const CanvasNew = ({
+  socket,
+  room,
+  currentDrawer,
+  color,
+  lineWidth,
+  fillcolor,
+}) => {
   const canvasRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
 
@@ -48,8 +55,11 @@ const CanvasNew = ({ socket, room }) => {
   }, [socket]);
 
   const startDrawing = (event) => {
-    setIsDrawing(true);
-    draw(event);
+    if (currentDrawer.socket_id == socket.id) {
+      console.log("currentDrawer in canvas...", currentDrawer);
+      setIsDrawing(true);
+      draw(event);
+    }
   };
 
   const finishDrawing = async () => {
@@ -77,11 +87,19 @@ const CanvasNew = ({ socket, room }) => {
 
     const x = event.clientX - canvas.offsetLeft;
     const y = event.clientY - canvas.offsetTop;
-
+    // fill color
+    context.fillStyle = color;
+    // Change the stroke color
+    context.strokeStyle = color;
+    context.lineWidth = lineWidth; // Set the line width
     context.lineTo(x, y);
     context.stroke();
     context.beginPath();
     context.moveTo(x, y);
+    // context.fill();
+    // if (fillcolor) {
+    //   context.fill();
+    // }
   };
 
   return (
